@@ -24,12 +24,49 @@ def clean_lyrics(text: str) -> str:
     return text.strip()
 
 def split_into_sentences(text: str) -> list[str]:
+    """
+    Divide letras en frases/líneas.
+    Como las letras del dataset no tienen saltos de línea,
+    dividimos por patrones comunes: puntuación, palabras repetidas, etc.
+    """
     if not isinstance(text, str):
         return []
     
-    text = clean_lyrics(text) #csll the clran function
-    lines = text.split('\n')
-    lines = [line.strip() for line in lines if line.strip() and len(line.strip()) > 3]
+    text = clean_lyrics(text)
+    
+    # Si hay saltos de línea reales, usar esos
+    if '\n' in text:
+        lines = text.split('\n')
+        lines = [line.strip() for line in lines if line.strip() and len(line.strip()) > 3]
+        if len(lines) > 3:
+            return lines
+    
+    # Si no hay saltos de línea, dividir de forma inteligente
+    # Dividir por patrones comunes en letras
+    
+    # Opción 1: Dividir cada ~50-80 caracteres en un espacio
+    words = text.split()
+    lines = []
+    current_line = []
+    current_length = 0
+    
+    for word in words:
+        current_line.append(word)
+        current_length += len(word) + 1
+        
+        # Cortar en ~60 caracteres o después de puntuación
+        if current_length >= 60 or word.endswith(('.', '!', '?', ',')):
+            line = ' '.join(current_line).strip()
+            if len(line) > 5:
+                lines.append(line)
+            current_line = []
+            current_length = 0
+    
+    # Agregar última línea
+    if current_line:
+        line = ' '.join(current_line).strip()
+        if len(line) > 5:
+            lines.append(line)
     
     return lines
 
